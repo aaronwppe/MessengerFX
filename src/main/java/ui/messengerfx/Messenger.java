@@ -2,6 +2,7 @@ package ui.messengerfx;
 
 import client.Client;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -17,6 +18,7 @@ public class Messenger extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
+        stage.setOnCloseRequest(event -> Platform.exit());
         openLoginWindow(stage);
     }
 
