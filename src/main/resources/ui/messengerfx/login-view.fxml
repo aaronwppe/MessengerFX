@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane prefHeight="340.0" prefWidth="340.0" style="-fx-background-color: #010F28;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.messengerfx.LoginController">
+    <children>
+        <TextField fx:id="usernameTextField" layoutX="76.0" layoutY="112.0" prefHeight="34.0" prefWidth="187.0" promptText="\@" style="-fx-background-color: #88B2FC;">
+            <font>
+                <Font name="Arial Bold" size="12.0" />
+            </font>
+        </TextField>
+        <Text fill="#a69e9e" layoutX="80.0" layoutY="107.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Username">
+            <font>
+                <Font name="Rockwell" size="15.0" />
+            </font>
+        </Text>
+        <Button fx:id="loginButton" alignment="CENTER" layoutX="84.0" layoutY="266.0" mnemonicParsing="false" onMouseClicked="#onLoginButtonClick" prefHeight="26.0" prefWidth="170.0" style="-fx-background-color: #4C8CFA;" text="Login" textAlignment="CENTER">
+            <font>
+                <Font name="Arial Bold" size="12.0" />
+            </font>
+        </Button>
+        <Text fill="#fafafa" layoutX="81.0" layoutY="53.0" strokeType="OUTSIDE" strokeWidth="0.0" text="MESSENGER" textAlignment="CENTER" wrappingWidth="177.60001220703134">
+            <font>
+                <Font name="Gill Sans MT Bold" size="27.0" />
+            </font>
+        </Text>
+        <Line endX="53.40000915527344" endY="7.62939453125E-6" layoutX="170.0" layoutY="59.0" startX="-53.80000305175781" startY="7.62939453125E-6" stroke="#4c8cfa" />
+        <PasswordField fx:id="passwordTextField" layoutX="76.0" layoutY="180.0" prefHeight="34.0" prefWidth="187.0" promptText="" style="-fx-background-color: #88B2FC;">
+            <font>
+                <Font name="Arial Bold" size="12.0" />
+            </font>
+        </PasswordField>
+        <Text fill="#a69e9e" layoutX="77.0" layoutY="175.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Password" wrappingWidth="76.134765625">
+            <font>
+                <Font name="Rockwell" size="15.0" />
+            </font>
+        </Text>
+        <Label fx:id="loginSuccessLabel" layoutX="111.0" layoutY="231.0" text="Login successful!" textFill="#4c8cfa" visible="false">
+            <font>
+                <Font name="Arial Bold" size="12.0" />
+            </font>
+        </Label>
+        <Label fx:id="loginFailedLabel" layoutX="127.0" layoutY="232.0" text="TRY AGAIN!!!" textFill="RED" visible="false">
+            <font>
+                <Font name="Berlin Sans FB" size="12.0" />
+            </font>
+        </Label>
+    </children>
+</AnchorPane>
+
