@@ -48,10 +48,11 @@ public class Message {
             senderHandler.write("DENIED " + recipientUsername);
             return false;
         }
-        if (!Database.insert(this))
+
+        if(!Database.insert(this))
             return false;
 
-        if (recipientHandler != null)
+        if(recipientHandler != null)
             recipientHandler.write(sentBlock());
 
         //reply with sent TIMESTAMP

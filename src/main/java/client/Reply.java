@@ -1,57 +1,75 @@
 package client;
 
-import static ui.messengerfx.Messenger.client;
+import static client.CLI.client;
+import static client.CLI.repository;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class Reply {
     Scanner scanner;
+    Reply () {}
 
-    Reply (String block) {
-        scanner = new Scanner(block);
-        System.out.println(block);
-    }
+    boolean process (String block) {
+        try(Scanner scanner = new Scanner(block)) {
+            this.scanner = scanner;
 
-    boolean process () {
-        boolean status = true;
+            switch (scanner.next()) {
+                case "SENT" -> {
+                    return getMessage();
+                }
 
-        if (!scanner.hasNext()) {
-            scanner.close();
+                case "STS" -> {
+                    return getSTS();
+                }
+
+                case "CLOSE" -> {
+                    return client.close();
+                }
+                default -> {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
             return false;
         }
 
-        try {
-            switch (scanner.next()) {
-                case "SENT":
-                    getMessage();
-                    break;
+    }
 
-                case "CLOSE":
-                    client.close();
-                    break;
+    boolean getSTS () throws Exception {
+        String recipientUsername = scanner.next();
+        int pointer = scanner.nextInt();
+        String sentTS = scanner.next() + " " + scanner.next();
 
-                default:
-                    status = false;
-            }
-        } catch (Exception e) {
-            status = false;
-        }
+        Chat chat = Chat.getChatOf(recipientUsername);
+        if (chat == null)
+            return false;
 
-        if(scanner != null)
-            scanner.close();
-        return status;
+        Message message = chat.messageList.get(pointer - 1);
+        message.sentTS = sentTS;
+
+        return repository.updateSTS(message, chat.chatID);
     }
 
     boolean getMessage () throws Exception {
-        Message message = new Message();
+        String senderUsername = scanner.next();
 
-        message.senderUsername = scanner.next();
-        message.pointer = scanner.nextInt();
-        message.content = readContent();
+        Chat chat = Chat.getChatOf(senderUsername);
+        if(chat == null) {
+            client.write("DENIED " + senderUsername);
+            return false;
+        }
 
-        client.write(message.ackBlock());
+        int pointer = scanner.nextInt();
+        if(chat.messageList.size() >= pointer) {
+            client.write("PTR " + senderUsername + " " + chat.messageList.size());
+            return false;
+        }
+
+        String content = readContent();
+
+        Message message = new Message(pointer, content);
+        chat.messageList.add(message);
+        client.write(chat.ackBlock(message));
 
         return true;
     }
@@ -67,11 +85,5 @@ public class Reply {
         stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 
         return stringBuilder.toString();
-    }
-
-    static String getTimestamp() {
-        LocalDateTime dateTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return dateTime.format(formatter);
     }
 }

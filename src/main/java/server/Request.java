@@ -15,30 +15,25 @@ class Request {
         String reply;
         Message message;
         try (Scanner scanner = new Scanner(request)) {
-            switch (scanner.next()) {
-                case "LOGIN":
-                    return true;
-
-                case "SEND":
+            return switch (scanner.next()) {
+                case "LOGIN" -> true;
+                case "SEND" -> {
                     //SEND @username message_pointer \n content
                     message = new Message(scanner, senderHandler);
-                    return message.processSEND();
-
-                case "ACK":
+                    yield message.processSEND();
+                }
+                case "ACK" -> {
                     //ACK @username message_pointer
                     message = new Message(scanner, senderHandler);
-                    return message.processACK();
-
-                case "PULL":
-                    return false;
-
-                case "CLOSE":
+                    yield message.processACK();
+                }
+                case "PULL" -> false;
+                case "CLOSE" -> {
                     senderHandler.close();
-                    return true;
-
-                default:
-                    return false;
-            }
+                    yield true;
+                }
+                default -> false;
+            };
 
         } catch (Exception e) {
             //since no scanner checks have been made we use exceptions.
@@ -75,7 +70,6 @@ class Request {
             senderHandler.write("AUTHENTICATED");
             System.out.println("auth");
             return true;
-
 
         } catch (NoSuchElementException e) {
 

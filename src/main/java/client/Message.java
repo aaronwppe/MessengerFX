@@ -2,15 +2,19 @@ package client;
 
 public class Message {
     int pointer;
-    String senderUsername;
     String content;
-    String deliveredTS;
+    String sentTS, deliveredTS;
 
-    Message() {}
-
-    String ackBlock () {
-        return "ACK " + senderUsername + " " + pointer;
+    Message(int pointer, String content) {
+        this.pointer = pointer;
+        this.content = content;
     }
 
+    Message(int pointer, String content, String sentTS, String deliveredTS) {
+        this.pointer = pointer;
+        this.content = content;
+        this.sentTS = sentTS;
+        this.deliveredTS = deliveredTS;
+    }
 
 }

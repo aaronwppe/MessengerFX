@@ -1,34 +1,54 @@
 package client;
 
+import static java.lang.Thread.sleep;
+
 public class CLI {
     static Client client;
+    static ChatRepository repository;
 
-    public static void main (String[] args) {
-        String url = "jdbc:sqlite:chatRepository:db";
-        ChatRepository repository = new ChatRepository(url);
+    public static void main (String[] args) throws Exception {
+        repository = new ChatRepository("jdbc:sqlite:chatRepository:db");
+        if(!repository.isConnected)
+            close(1);
 
-        Chat chat = repository.getNewChat("@cooldeep", "Kuldeep Jangid", 0);
+        client = new Client("localhost", 1234);
+        if(!client.isConnected)
+            close(2);
 
-        Chat.list = repository.fetchChatList();
-        for (Chat c: Chat.list) {
-            System.out.println(c.id + " " + c.username);
-        }
+        if(!client.login("@cooldeep", "1234"))
+            close(3);
 
-       // client = new Client("localhost", 1234);
-/*
-        if(!client.isConnected) {
-            System.out.println("ERROR: Failed to establish connection with server!");
-            System.exit(1);
-        }
+        //------>START
 
-        if (!client.login("@cooldeep")) {
-            System.out.println("ERROR: Login failed!");
-            System.exit(1);
-        }
+        Chat.chatList = repository.fetchChatList();
 
+        Chat chat = repository.openNewChat("@aaronwppe", "Aaron Mathew");
+        if(chat == null)
+            close(4);
+        Chat.chatList.add(chat);
+
+
+        chat.sendMessage("hello");
         client.startListener();
-        //client.write("SEND @aaronwppe 2\ntesting again beech!!");*/
 
+        sleep(1000);
+        for (Chat c: repository.fetchChatList()) {
+            System.out.print(c.username + " " + c.messageList.size() + " ");
+            for (Message m: c.messageList)
+                System.out.print(" " + m.pointer + " " + m.content + " " + m.sentTS);
 
+            System.out.println();
+        }
+        close(0);
+    }
+
+    static void close(int status) {
+        if(repository != null)
+            repository.close();
+
+        if(client != null)
+            client.close();
+
+        System.exit(status);
     }
 }
