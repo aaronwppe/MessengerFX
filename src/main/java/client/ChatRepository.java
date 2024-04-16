@@ -6,17 +6,17 @@ import java.util.LinkedList;
 
 public class ChatRepository {
     Connection connection;
-    PreparedStatement insertNewChatStatement, insertMessageStatement, insertSTSStatement;
+    PreparedStatement insertNewChatStatement, insertMessageStatement, insertSTSStatement, insertDTSStatement;
     PreparedStatement selectChatIDStatement, selectMessagesStatement;
     Statement statement;
     boolean isConnected;
 
-    ChatRepository (String url) {
+    public ChatRepository(String url) {
         try {
             connection = DriverManager.getConnection(url);
             statement = connection.createStatement();
-
-            /*statement.executeUpdate("DROP TABLE messages");
+/*
+            statement.executeUpdate("DROP TABLE messages");
             statement.executeUpdate("DROP TABLE chats");*/
 
             statement.execute("PRAGMA foreign_keys = ON");
@@ -28,8 +28,9 @@ public class ChatRepository {
             selectMessagesStatement = connection.prepareStatement("SELECT * FROM messages WHERE chat_id = ?");
 
             insertNewChatStatement = connection.prepareStatement("INSERT INTO chats(username, name) VALUES(?, ?)");
-            insertMessageStatement = connection.prepareStatement("INSERT INTO messages(chat_id, message_pointer, content) VALUES (?, ?, ?)");
+            insertMessageStatement = connection.prepareStatement("INSERT INTO messages(chat_id, message_pointer, content, user_is_sender) VALUES (?, ?, ?, ?)");
             insertSTSStatement = connection.prepareStatement("UPDATE messages SET sent_on = ? WHERE chat_id = ? AND message_pointer = ?");
+            insertDTSStatement = connection.prepareStatement("UPDATE messages SET delivered_on = ? WHERE chat_id = ? AND message_pointer = ?");
 
             isConnected = true;
 
@@ -44,7 +45,7 @@ public class ChatRepository {
                 String query = "CREATE TABLE chats(" +
                                 "chat_id INTEGER PRIMARY KEY AUTOINCREMENT," +
                                 "username VARCHAR(30) UNIQUE NOT NULL," +
-                                "name VARCHAR(50) NOT NULL)";
+                                "name VARCHAR(50))";
                 statement.executeUpdate(query);
 
                 query = "CREATE TABLE messages(" +
@@ -52,6 +53,7 @@ public class ChatRepository {
                         "chat_id INTEGER," +
                         "message_pointer INTEGER," +
                         "content TEXT," +
+                        "user_is_sender BOOLEAN," +
                         "sent_on TIMESTAMP," +
                         "delivered_on TIMESTAMP," +
                         "FOREIGN KEY(chat_id) REFERENCES chats(chat_id))";
@@ -64,7 +66,7 @@ public class ChatRepository {
         }
     }
 
-     ArrayList<Chat> fetchChatList() {
+     public ArrayList<Chat> fetchChatList() {
         ArrayList<Chat> chatList = new ArrayList<>();
 
         try (ResultSet resultSet = statement.executeQuery("SELECT * FROM chats")) {
@@ -96,7 +98,15 @@ public class ChatRepository {
                     String sentTS = resultSet.getString("sent_on");
                     String deliveredTS = resultSet.getString("delivered_on");
 
-                    Message message = new Message(pointer, content, sentTS, deliveredTS);
+                    Message.Type type;
+                    if(resultSet.getBoolean("user_is_sender"))
+                        type = Message.Type.SENDER;
+                    else {
+                        type = Message.Type.RECIPIENT;
+                        System.out.println(deliveredTS);
+                    }
+
+                    Message message = new Message(type, pointer, content, sentTS, deliveredTS);
                     messageList.add(message);
                 }
             }
@@ -140,6 +150,7 @@ public class ChatRepository {
             insertMessageStatement.setInt(1, chatID);
             insertMessageStatement.setInt(2, message.pointer);
             insertMessageStatement.setString(3, message.content);
+            insertMessageStatement.setBoolean(4, message.type == Message.Type.SENDER);
 
             insertMessageStatement.executeUpdate();
 
@@ -150,13 +161,28 @@ public class ChatRepository {
         }
     }
 
-    boolean updateSTS (Message message, int chatID) {
+    boolean insertSentTS(Message message, int chatID) {
         try {
             insertSTSStatement.setString(1, message.sentTS);
             insertSTSStatement.setInt(2, chatID);
             insertSTSStatement.setInt(3, message.pointer);
 
             insertSTSStatement.executeUpdate();
+
+            return true;
+
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    boolean insertDeliveredTS(Message message, int chatID) {
+        try {
+            insertDTSStatement.setString(1, message.deliveredTS);
+            insertDTSStatement.setInt(2, chatID);
+            insertDTSStatement.setInt(3, message.pointer);
+
+            insertDTSStatement.executeUpdate();
 
             return true;
 

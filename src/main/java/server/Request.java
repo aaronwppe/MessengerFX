@@ -28,6 +28,7 @@ class Request {
                     yield message.processACK();
                 }
                 case "PULL" -> false;
+                case "OPEN" -> processOpen(scanner);
                 case "CLOSE" -> {
                     senderHandler.close();
                     yield true;
@@ -41,6 +42,17 @@ class Request {
         }
     }
 
+    boolean processOpen(Scanner scanner) throws Exception{
+        String username = scanner.next();
+        String name = Database.fetchName(username);
+        if (name == null) {
+            senderHandler.write("USER DENIED");
+            return false;
+        }
+
+        senderHandler.write("USER " + username +  " " + name + "\n" + 0);
+        return true;
+    }
     boolean authenticateClient (String loginRequest) {
         try (Scanner scanner = new Scanner(loginRequest)) {
             if (!scanner.next().equals("LOGIN")) {

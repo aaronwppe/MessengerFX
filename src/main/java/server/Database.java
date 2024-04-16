@@ -8,7 +8,8 @@ public class Database {
     private static Statement statement;
     private static PreparedStatement selectUsernameStatement;
     private static PreparedStatement selectUndeliveredMessagesStatement;
-    private static PreparedStatement selectUserStatement;
+    private static PreparedStatement selectUserLoginStatement;
+    private static PreparedStatement selectNameStatement;
     private static ResultSet resultSet;
     private static ResultSetMetaData metaData;
     private static int columns;
@@ -24,7 +25,10 @@ public class Database {
             selectUndeliveredMessagesStatement = connection.prepareStatement(query);
 
             query = "SELECT user_id, name FROM users WHERE username = ? AND password = crypt(?, password)";
-            selectUserStatement = connection.prepareStatement(query);
+            selectUserLoginStatement = connection.prepareStatement(query);
+
+            query = "SELECT name FROM users WHERE username = ?";
+            selectNameStatement = connection.prepareStatement(query);
 
             System.out.println(">>> Connected to [DATABASE] '" + url + "'.");
 
@@ -59,10 +63,10 @@ public class Database {
 
     static User fetchUser (String username, String password) {
         try{
-            selectUserStatement.setString(1, username);
-            selectUserStatement.setString(2, password);
+            selectUserLoginStatement.setString(1, username);
+            selectUserLoginStatement.setString(2, password);
 
-            ResultSet resultSet = selectUserStatement.executeQuery();
+            ResultSet resultSet = selectUserLoginStatement.executeQuery();
 
             if (resultSet.next()) {
                 int id = resultSet.getInt("user_id");
@@ -83,6 +87,20 @@ public class Database {
         else
             return null;
 
+    }
+
+    static String fetchName (String username) {
+        try {
+            selectNameStatement.setString(1, username);
+            try (ResultSet resultSet = selectNameStatement.executeQuery()) {
+                if(resultSet.next())
+                    return resultSet.getString(1);
+                else
+                    return null;
+            }
+        } catch (SQLException e) {
+            return null;
+        }
     }
 
     static String fetchUsername (int userID) {
@@ -150,6 +168,7 @@ public class Database {
 
         return messages;
     }
+
     public void close () {
         try {
             if (resultSet != null)

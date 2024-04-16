@@ -7,7 +7,8 @@ public class Client {
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
-    public boolean isConnected;
+    public boolean isConnected, isAuthenticated = false;
+    Thread listenerThread;
 
     public Client (String host, int port) {
         try {
@@ -32,10 +33,13 @@ public class Client {
             return false;
         }
 
-        startListener();
+        listenerThread = startListener();
+
+        isAuthenticated = true;
+
         return true;
     }
-    synchronized void write (String message) {
+    public synchronized void write (String message) {
         try {
             bufferedWriter.write(message + "\nEND");
             bufferedWriter.newLine();
@@ -70,21 +74,25 @@ public class Client {
     }
 
     //only this listener will close
-    public void startListener () {
-        new Thread(() -> {
+    public Thread startListener() {
+        Thread listenerThread = new Thread(() -> {
             Reply reply = new Reply();
-            while(!socket.isClosed()) {
+            while (!socket.isClosed()) {
                 String block = read();
-                if(reply.process(block))
-                    System.out.println("reply processed successfully");
+                System.out.println(block);
+                if (reply.process(block))
+                    System.out.println("reply processed successfully\n");
                 else
-                    System.out.println("reply processing failed");
+                    System.out.println("reply processing failed\n");
             }
-        }).start();
+        });
+        listenerThread.start();
+        return listenerThread;
     }
 
-    boolean close () {
+    public boolean close() {
         isConnected = false;
+        write("CLOSE");
         try {
             if(bufferedReader != null)
                 bufferedReader.close();

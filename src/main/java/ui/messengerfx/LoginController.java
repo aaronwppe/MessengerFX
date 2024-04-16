@@ -7,6 +7,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
+import java.util.function.Consumer;
+
 public class LoginController {
     @FXML
     private TextField usernameTextField;
@@ -17,13 +19,25 @@ public class LoginController {
     @FXML
     private Label loginFailedLabel;
 
+    private Runnable loginSuccessCallback;
+
+    public void setLoginSuccessCallback(Runnable callback) {
+        this.loginSuccessCallback = callback;
+    }
+
     @FXML
     protected void onLoginButtonClick () {
         boolean isAuthenticated = client.login(usernameTextField.getText(), passwordTextField.getText());
 
-        if (isAuthenticated)
+        if (isAuthenticated) {
             loginSuccessLabel.setVisible(true);
+            if (loginSuccessCallback != null)
+                loginSuccessCallback.run(); // Invoke the callback
+
+        }
         else
             loginFailedLabel.setVisible(true);
     }
+
+
 }

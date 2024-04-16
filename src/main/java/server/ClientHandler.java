@@ -69,7 +69,6 @@ public class ClientHandler extends Thread {
             return;
         }
 
-
         for (Message message: Database.fetchUndeliveredMessages(user.id)) {
             write(message.sentBlock());
         }
